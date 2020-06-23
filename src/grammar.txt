@@ -1,0 +1,41 @@
+ExpressionStatement:
+  Expression (';')?
+VariableDeclaration:
+  Identifier ('=' | ':=') Expression
+Expression:
+  PipeExpression
+PipeExpression:
+  PipeExpression ('|>') OrExpression
+  OrExpression
+OrExpression:
+  OrExpression ('||') AndExpression
+  AndExpression
+AndExpression:
+  AndExpression ('&&') EqualExpression
+  EqualExpression
+EqualExpression:
+  EqualExpression ('==' | '!=') LessExpression
+  LessExpression
+LessExpression:
+  LessExpression ('<' | '<=' | '>' | '>=') NegativeExpression
+  NegativeExpression
+NegativeExpression:
+  ('!')? AdditiveExpression
+AdditiveExpression:
+  AdditiveExpression ('+' | '-') MultiplicativeExpression
+  MultiplicativeExpression
+MultiplicativeExpression:
+  MultiplicativeExpression ('*' | '/') UnaryExpression
+  UnaryExpression
+UnaryExpression:
+  ('+' | '-')? CallExpression
+CallExpression:
+  Identifier '(' CallArguments ')'
+  ValueExpression
+CallArguments:
+  (Expression (',' Expression)*)?
+ValueExpression:
+  Number
+  String
+  Identifier
+  '(' Expression ')'
