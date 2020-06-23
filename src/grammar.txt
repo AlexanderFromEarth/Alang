@@ -30,7 +30,7 @@ MultiplicativeExpression:
 UnaryExpression:
   ('+' | '-')? CallExpression
 CallExpression:
-  Identifier '(' CallArguments ')'
+  CallExpression '(' CallArguments ')'
   ValueExpression
 CallArguments:
   (Expression (',' Expression)*)?
