@@ -19,7 +19,8 @@ namespace Lang.Ast.Expressions
     public IExpression Left { get; }
     public BinaryOperator Operator { get; }
     public IExpression Right { get; }
-    public Binary(int pos, IExpression left, BinaryOperator op, IExpression right) => (Left, Operator, Right) = (left, op, right);
+    public int Position { get; }
+    public Binary(int pos, IExpression left, BinaryOperator op, IExpression right) => (Position, Left, Operator, Right) = (pos, left, op, right);
     static readonly IReadOnlyDictionary<BinaryOperator, string> operators = new Dictionary<BinaryOperator, string> {
       { BinaryOperator.Pipe, "|>" },
       { BinaryOperator.Or, "||" },
