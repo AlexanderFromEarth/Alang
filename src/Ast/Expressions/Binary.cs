@@ -19,17 +19,17 @@ namespace Lang.Ast.Expressions
     public IExpression Left { get; }
     public BinaryOperator Operator { get; }
     public IExpression Right { get; }
-    public Binary(IExpression left, BinaryOperator op, IExpression right) => (Left, Operator, Right) = (left, op, right);
+    public Binary(int pos, IExpression left, BinaryOperator op, IExpression right) => (Left, Operator, Right) = (left, op, right);
     static readonly IReadOnlyDictionary<BinaryOperator, string> operators = new Dictionary<BinaryOperator, string> {
+      { BinaryOperator.Pipe, "|>" },
+      { BinaryOperator.Or, "||" },
       { BinaryOperator.And, "&&" },
-      { BinaryOperator.Division, "/" },
       { BinaryOperator.Equal, "==" },
       { BinaryOperator.Less, "<" },
-      { BinaryOperator.Subtraction, "-" },
-      { BinaryOperator.Or, "||" },
-      { BinaryOperator.Pipe, "|>" },
       { BinaryOperator.Addition, "+" },
+      { BinaryOperator.Subtraction, "-" },
       { BinaryOperator.Multiplication, "*" },
+      { BinaryOperator.Division, "/" },
     };
   }
 }
