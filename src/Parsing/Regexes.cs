@@ -9,9 +9,9 @@ namespace Lang.Parsing
     static readonly IReadOnlyList<(TokenType, string)> patterns = new List<(TokenType, string)> {
       ( TokenType.Whitespaces, @"[\s\t\r\n]+" ),
       ( TokenType.Identifier, @"[a-zA-Z_][a-zA-Z0-9_]*"),
-      ( TokenType.SingleLineComment, @"#[^\r\n]*" ),
+      ( TokenType.SingleLineComment, @"\#[^\r\n]*" ),
       ( TokenType.NumberLiteral, @"[0-9]+"),
-      ( TokenType.OperatorOrPunctuator, @"==|<>|=>|\|>|<=|>=|\|\||&&|:=|[|-+*/%,.<>=;(){}[\]]" ),
+      ( TokenType.OperatorOrPunctuator, @"==|!=|\|>|<=|>=|\|\||&&|[-+*/%,.<>=;(){}[\]]" ),
     };
     static Regexes instance;
     public static Regexes Instance => instance ?? (instance = new Regexes());
