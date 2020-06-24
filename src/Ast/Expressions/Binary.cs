@@ -12,7 +12,12 @@ namespace Lang.Ast.Expressions
     And,
     Pipe,
     Equal,
+    StrictLess,
+    StrictGreater,
+    NotEqual,
     Less,
+    Greater,
+    Remainder,
   }
   class Binary : IExpression
   {
@@ -26,11 +31,17 @@ namespace Lang.Ast.Expressions
       { BinaryOperator.Or, "||" },
       { BinaryOperator.And, "&&" },
       { BinaryOperator.Equal, "==" },
-      { BinaryOperator.Less, "<" },
+      { BinaryOperator.NotEqual, "!=" },
+      { BinaryOperator.Less, "<=" },
+      { BinaryOperator.Greater, ">=" },
+      { BinaryOperator.StrictLess, "<" },
+      { BinaryOperator.StrictGreater, ">" },
       { BinaryOperator.Addition, "+" },
       { BinaryOperator.Subtraction, "-" },
       { BinaryOperator.Multiplication, "*" },
       { BinaryOperator.Division, "/" },
+      { BinaryOperator.Remainder, "%" },
     };
+    public string FormattedString => $"{Left.FormattedString} {operators[Operator]} {Right.FormattedString}";
   }
 }
