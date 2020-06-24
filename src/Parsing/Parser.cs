@@ -91,7 +91,7 @@ namespace Lang.Parsing
 
     IExpression ParseExpression()
     {
-      return ParsePipelineExpression();
+      return ParseOrExpression();
     }
 
     IExpression ParsePipelineExpression()
@@ -160,6 +160,11 @@ namespace Lang.Parsing
           var right = ParseRelationalExpression();
           left = new Binary(pos, left, BinaryOperator.Equal, right);
         }
+        else if (SkipIf("!="))
+        {
+          var right = ParseRelationalExpression();
+          left = new Binary(pos, left, BinaryOperator.NotEqual, right);
+        }
         else
         {
           break;
@@ -176,7 +181,22 @@ namespace Lang.Parsing
         if (SkipIf("<"))
         {
           var right = ParseAdditiveExpression();
+          left = new Binary(pos, left, BinaryOperator.StrictLess, right);
+        }
+        else if (SkipIf(">"))
+        {
+          var right = ParseAdditiveExpression();
+          left = new Binary(pos, left, BinaryOperator.StrictGreater, right);
+        }
+        else if (SkipIf("<="))
+        {
+          var right = ParseAdditiveExpression();
           left = new Binary(pos, left, BinaryOperator.Less, right);
+        }
+        else if (SkipIf(">="))
+        {
+          var right = ParseAdditiveExpression();
+          left = new Binary(pos, left, BinaryOperator.Greater, right);
         }
         else
         {
@@ -225,6 +245,11 @@ namespace Lang.Parsing
         {
           var right = ParsePrimary();
           left = new Binary(pos, left, BinaryOperator.Division, right);
+        }
+        else if (SkipIf("%"))
+        {
+          var right = ParsePrimary();
+          left = new Binary(pos, left, BinaryOperator.Remainder, right);
         }
         else
         {
