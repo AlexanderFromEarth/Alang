@@ -14,10 +14,10 @@ AndExpression:
   AndExpression ('&&') EqualExpression
   EqualExpression
 EqualExpression:
-  EqualExpression ('==' | '!=') LessExpression
-  LessExpression
-LessExpression:
-  LessExpression ('<' | '<=' | '>' | '>=') NegativeExpression
+  EqualExpression ('==' | '!=') RelationalExpression
+  RelationalExpression
+RelationalExpression:
+  RelationalExpression ('<' | '<=' | '>' | '>=') NegativeExpression
   NegativeExpression
 NegativeExpression:
   ('!')? AdditiveExpression
@@ -28,13 +28,16 @@ MultiplicativeExpression:
   MultiplicativeExpression ('*' | '/') UnaryExpression
   UnaryExpression
 UnaryExpression:
-  ('+' | '-')? CallExpression
+  ('+' | '-')? Primary
+Primary:
+  CallExpression
+  MemberAccessExpression
+  Primitive
 CallExpression:
-  CallExpression '(' CallArguments ')'
-  ValueExpression
+  CallExpression '(' CallArguments? ')'
 CallArguments:
-  (Expression (',' Expression)*)?
-ValueExpression:
+  Expression (',' Expression)*
+Primitive:
   Number
   String
   Identifier
