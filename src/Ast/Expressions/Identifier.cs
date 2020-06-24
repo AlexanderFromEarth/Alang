@@ -5,5 +5,6 @@ namespace Lang.Ast.Expressions
     public int Position { get; }
     public string Name { get; }
     public Identifier(int pos, string name) => (Position, Name) = (pos, name);
+    public string FormattedString => Name;
   }
 }
