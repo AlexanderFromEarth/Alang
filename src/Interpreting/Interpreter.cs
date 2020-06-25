@@ -17,8 +17,8 @@ namespace Lang.Interpreting
     SourceFile SourceFile { get; set; }
     static object MissingVariable { get; set; } = new object();
     Dictionary<string, object> CurrentShadowedVariables { get; set; } = null;
-    public IDictionary<string, object> Variables { get; }
-    public Interpreter() => Variables = new Dictionary<string, object> {
+    public IDictionary<string, object> Constants { get; }
+    public Interpreter() => Constants = new Dictionary<string, object> {
       { "true", true },
       { "false", false },
       { "null", null },
@@ -54,11 +54,11 @@ namespace Lang.Interpreting
         var shadowedVariable = kv.Value;
         if (shadowedVariable == MissingVariable)
         {
-          Variables.Remove(name);
+          Constants.Remove(name);
         }
         else
         {
-          Variables[name] = shadowedVariable;
+          Constants[name] = shadowedVariable;
         }
       }
       CurrentShadowedVariables = oldShadowedVariables;
@@ -69,18 +69,11 @@ namespace Lang.Interpreting
     public void VisitDeclaration(Declaration declaration)
     {
       var name = declaration.Name;
-      if (CurrentShadowedVariables != null && !CurrentShadowedVariables.ContainsKey(name))
+      if (Constants.ContainsKey(name))
       {
-        if (Variables.TryGetValue(name, out object value))
-        {
-          CurrentShadowedVariables[name] = value;
-        }
-        else
-        {
-          CurrentShadowedVariables[name] = MissingVariable;
-        }
+        throw MakeError(declaration.Expression, "Can't assigment to constant");
       }
-      Variables[name] = Calc(declaration.Expression);
+      Constants[name] = Calc(declaration.Expression);
     }
     object Calc(IExpression expr) => expr.AcceptVisitor(this);
     T Calc<T>(IExpression expr)
@@ -250,7 +243,7 @@ namespace Lang.Interpreting
     }
     public object VisitIdentifier(Identifier identifier)
     {
-      if (Variables.TryGetValue(identifier.Name, out object value))
+      if (Constants.TryGetValue(identifier.Name, out object value))
       {
         return value;
       }

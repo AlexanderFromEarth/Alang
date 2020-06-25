@@ -14,7 +14,7 @@ namespace Lang
     {
       var interpreter = new Interpreter();
       interpreter.RunProgram(Parser.Parse(SourceFile.Read(args[0])));
-      foreach (var variable in interpreter.Variables.OrderBy(x => x.Key, StringComparer.Ordinal))
+      foreach (var variable in interpreter.Constants.OrderBy(x => x.Key, StringComparer.Ordinal))
       {
         Console.WriteLine($" - {variable.Key}: {PrintFunction.ValueToString(variable.Value)}");
       }
