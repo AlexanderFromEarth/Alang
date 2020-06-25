@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Lang.Ast;
 using Lang.Ast.BaseNodes;
 using Lang.Ast.Expressions;
 using Lang.Ast.Statements;
+using Lang.Interpreting.Functions;
 using Lang.Parsing;
 
 namespace Lang.Interpreting
@@ -19,6 +21,7 @@ namespace Lang.Interpreting
       { "true", true },
       { "false", false },
       { "null", null },
+      { "print", new PrintFunction() },
     };
     Exception MakeError(IExpression expr, string msg) => new Exception(SourceFile.MakeErrorMessage(expr.Position, msg));
     public void RunProgram(ProgramNode program)
@@ -207,6 +210,16 @@ namespace Lang.Interpreting
     object CalcLess(Binary binary)
     {
       return (bool)CalcStrictLess(binary) || (bool)CalcEqual(binary);
+    }
+    public object VisitCall(Call call)
+    {
+      var value = Calc(call.Function);
+      if (!(value is ICallable func))
+      {
+        throw MakeError(call, $"{value} is not callable");
+      }
+      var args = call.Arguments.Select(Calc).ToList();
+      return func.Call(args);
     }
     public object VisitParentheses(Parentheses parentheses) => Calc(parentheses.Expression);
     public object VisitNumber(Number number)

@@ -261,8 +261,30 @@ namespace Lang.Parsing
 
     IExpression ParsePrimary()
     {
-      var expression = ParsePrimitive();
-      return expression;
+      var expr = ParsePrimitive();
+      while (true)
+      {
+        var pos = CurrentPosition;
+        if (SkipIf("("))
+        {
+          var args = new List<IExpression>();
+          if (!SkipIf(")"))
+          {
+            args.Add(ParseExpression());
+            while (SkipIf(","))
+            {
+              args.Add(ParseExpression());
+            }
+            Expect(")");
+          }
+          expr = new Call(pos, expr, args);
+        }
+        else
+        {
+          break;
+        }
+      }
+      return expr;
     }
 
     IExpression ParsePrimitive()
