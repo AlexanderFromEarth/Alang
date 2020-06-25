@@ -8,6 +8,7 @@ using Lang.Ast.Expressions;
 using Lang.Ast.Statements;
 using Lang.Interpreting.Functions;
 using Lang.Parsing;
+using Lang.Utils;
 
 namespace Lang.Interpreting
 {
@@ -119,9 +120,26 @@ namespace Lang.Interpreting
           return CalcOr(binary);
         case BinaryOperator.And:
           return CalcAnd(binary);
+        case BinaryOperator.Pipe:
+          return CalcPipe(binary);
         default:
           throw MakeError(binary, $"Unknown operation {binary.Operator}");
       }
+    }
+    object CalcPipe(Binary binary)
+    {
+      var left = Calc(binary.Left);
+      if (!(binary.Right is Call call))
+      {
+        throw MakeError(binary, $"Right operand must be a call, but get {binary.Right}");
+      }
+      var value = Calc(call.Function);
+      if (!(value is ICallable func))
+      {
+        throw MakeError(call, $"{value} is not callable");
+      }
+      var args = left.Yield().Concat(call.Arguments.Select(Calc)).ToList();
+      return func.Call(args);
     }
     object CalcAddition(Binary binary)
     {

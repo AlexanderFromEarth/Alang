@@ -91,7 +91,7 @@ namespace Lang.Parsing
 
     IExpression ParseExpression()
     {
-      return ParseOrExpression();
+      return ParsePipelineExpression();
     }
 
     IExpression ParsePipelineExpression()
