@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Lang.Ast;
 using Lang.Ast.BaseNodes;
 using Lang.Ast.Expressions;
 using Lang.Ast.Statements;
-using Lang.Interpreting.Functions;
 using Lang.Parsing;
 using Lang.Utils;
 
@@ -15,15 +15,13 @@ namespace Lang.Interpreting
   class Interpreter : IStatementVisitor, IExpressionVisitor<object>
   {
     SourceFile SourceFile { get; set; }
-    static object MissingVariable { get; set; } = new object();
-    Dictionary<string, object> CurrentShadowedVariables { get; set; } = null;
-    public IDictionary<string, object> Constants { get; }
-    public Interpreter() => Constants = new Dictionary<string, object> {
-      { "true", true },
-      { "false", false },
-      { "null", null },
-      { "print", new PrintFunction() },
-    };
+    public IDictionary<string, object> Constants { get; set; }
+    public Interpreter() => Constants = new Dictionary<string, object>(Assembly.GetExecutingAssembly()
+      .GetTypes()
+      .Where(t => t.IsClass && t.Namespace == "Lang.Interpreting.Values")
+      .Select(Activator.CreateInstance)
+      .Select(x => KeyValuePair.Create((string)x.GetType().GetMethod("GetPrintString").Invoke(x, null), x))
+      .Concat(new KeyValuePair<string, object>[] { KeyValuePair.Create("true", (object)true), KeyValuePair.Create("false", (object)false), KeyValuePair.Create("null", (object)null) }));
     Exception MakeError(IExpression expr, string msg) => new Exception(SourceFile.MakeErrorMessage(expr.Position, msg));
     public void RunProgram(ProgramNode program)
     {
@@ -42,26 +40,13 @@ namespace Lang.Interpreting
     }
     void RunBlock(Block block)
     {
-      var oldShadowedVariables = CurrentShadowedVariables;
-      CurrentShadowedVariables = new Dictionary<string, object>();
+      var old = Constants;
+      Constants = new Dictionary<string, object>();
       foreach (var statement in block.Statements)
       {
         Run(statement);
       }
-      foreach (var kv in CurrentShadowedVariables)
-      {
-        var name = kv.Key;
-        var shadowedVariable = kv.Value;
-        if (shadowedVariable == MissingVariable)
-        {
-          Constants.Remove(name);
-        }
-        else
-        {
-          Constants[name] = shadowedVariable;
-        }
-      }
-      CurrentShadowedVariables = oldShadowedVariables;
+      Constants = old;
     }
 
     void Run(IStatement statement) => statement.AcceptVisitor(this);

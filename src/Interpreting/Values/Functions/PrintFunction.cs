@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Lang.Interpreting.Functions
+namespace Lang.Interpreting.Values
 {
   class PrintFunction : ICallable, IPrintable
   {

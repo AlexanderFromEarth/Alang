@@ -3,7 +3,7 @@ using System.Linq;
 using Lang.Ast;
 using Lang.Ast.BaseNodes;
 using Lang.Interpreting;
-using Lang.Interpreting.Functions;
+using Lang.Interpreting.Values;
 using Lang.Parsing;
 
 namespace Lang
