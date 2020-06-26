@@ -11,7 +11,7 @@ namespace Lang.Parsing
       ( TokenType.Identifier, @"[a-zA-Z_][a-zA-Z0-9_]*"),
       ( TokenType.SingleLineComment, @"\#[^\r\n]*" ),
       ( TokenType.NumberLiteral, @"[0-9]+"),
-      ( TokenType.OperatorOrPunctuator, @"==|!=|\|>|<=|>=|\|\||&&|[-+*/%,.<>=;(){}[\]]" ),
+      ( TokenType.OperatorOrPunctuator, @"==|!=|\|>|=>|<=|>=|\|\||&&|[-+*/%,.<>=;(){}[\]]" ),
     };
     static Regexes instance;
     public static Regexes Instance => instance ?? (instance = new Regexes());

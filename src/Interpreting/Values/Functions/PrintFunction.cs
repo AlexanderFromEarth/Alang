@@ -1,18 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lang.Interpreting.Types;
 
 namespace Lang.Interpreting.Values
 {
-  class PrintFunction : ICallable, IPrintable
+  class PrintFunction : Function
   {
-    public object Call(IReadOnlyList<object> args)
+    public PrintFunction() : base(args =>
     {
       Console.WriteLine(string.Join(" ",
         args.Select(ValueToString)));
       return null;
-    }
-    public string GetPrintString() => "print";
+    })
+    { }
+    public override string GetPrintString() => "print";
     public static string ValueToString(object value)
     {
       if (value == null)

@@ -3,6 +3,9 @@ ExpressionStatement:
 VariableDeclaration:
   Identifier ('=' | ':=') Expression
 Expression:
+  LambdaExpression
+LambdaExpression:
+  '(' (Identifier (',' Identifier)*)? ')' '=>' Expression
   PipeExpression
 PipeExpression:
   PipeExpression ('|>') OrExpression

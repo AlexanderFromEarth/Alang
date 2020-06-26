@@ -91,6 +91,35 @@ namespace Lang.Parsing
 
     IExpression ParseExpression()
     {
+      return ParseLambdaExpression();
+    }
+
+    IExpression ParseLambdaExpression()
+    {
+      var pos = CurrentPosition;
+      var idx = LastIndex;
+      try
+      {
+        if (SkipIf("("))
+        {
+          var args = new List<Identifier>();
+          if (!SkipIf(")"))
+          {
+            args.Add(ParseIdentifier());
+            while (SkipIf(","))
+            {
+              args.Add(ParseIdentifier());
+            }
+            Expect(")");
+          }
+          Expect("=>");
+          return new Lambda(pos, args, ParseExpression());
+        }
+      }
+      catch
+      {
+        LastIndex = idx;
+      }
       return ParsePipelineExpression();
     }
 
@@ -307,6 +336,18 @@ namespace Lang.Parsing
         var parentheses = new Parentheses(pos, ParseExpression());
         Expect(")");
         return parentheses;
+      }
+      throw MakeError($"Expected identifier, number or parentheses, but get {CurrentToken}");
+    }
+
+    Identifier ParseIdentifier()
+    {
+      var pos = CurrentPosition;
+      if (CurrentToken.Type == TokenType.Identifier)
+      {
+        var lexeme = CurrentToken.Lexeme;
+        ReadNext();
+        return new Identifier(pos, lexeme);
       }
       throw MakeError($"Expected identifier, number or parentheses, but get {CurrentToken}");
     }

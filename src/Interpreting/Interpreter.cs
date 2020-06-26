@@ -7,6 +7,7 @@ using Lang.Ast;
 using Lang.Ast.BaseNodes;
 using Lang.Ast.Expressions;
 using Lang.Ast.Statements;
+using Lang.Interpreting.Types;
 using Lang.Parsing;
 using Lang.Utils;
 
@@ -16,12 +17,19 @@ namespace Lang.Interpreting
   {
     SourceFile SourceFile { get; set; }
     public IDictionary<string, object> Constants { get; set; }
-    public Interpreter() => Constants = new Dictionary<string, object>(Assembly.GetExecutingAssembly()
-      .GetTypes()
-      .Where(t => t.IsClass && t.Namespace == "Lang.Interpreting.Values")
-      .Select(Activator.CreateInstance)
-      .Select(x => KeyValuePair.Create((string)x.GetType().GetMethod("GetPrintString").Invoke(x, null), x))
-      .Concat(new KeyValuePair<string, object>[] { KeyValuePair.Create("true", (object)true), KeyValuePair.Create("false", (object)false), KeyValuePair.Create("null", (object)null) }));
+    public Interpreter()
+    {
+      Assembly.GetExecutingAssembly()
+                  .GetTypes()
+                  .Where(t => t.IsClass && t.Namespace == "Lang.Interpreting.Values" && t.DeclaringType == null)
+                  .ToList().ForEach(Console.WriteLine);
+      Constants = new Dictionary<string, object>(Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(t => t.IsClass && t.Namespace == "Lang.Interpreting.Values" && t.DeclaringType == null)
+            .Select(Activator.CreateInstance)
+            .Select(x => KeyValuePair.Create((string)x.GetType().GetMethod("GetPrintString").Invoke(x, null), x))
+            .Concat(new KeyValuePair<string, object>[] { KeyValuePair.Create("true", (object)true), KeyValuePair.Create("false", (object)false), KeyValuePair.Create("null", (object)null) }));
+    }
     Exception MakeError(IExpression expr, string msg) => new Exception(SourceFile.MakeErrorMessage(expr.Position, msg));
     public void RunProgram(ProgramNode program)
     {
@@ -103,6 +111,18 @@ namespace Lang.Interpreting
         default:
           throw MakeError(binary, $"Unknown operation {binary.Operator}");
       }
+    }
+    public object VisitLambda(Lambda lambda)
+    {
+      return new Function(x =>
+      {
+        var old = Constants;
+        Constants = new Dictionary<string, object>(Constants);
+        lambda.Arguments.Zip(x).ToList().ForEach(x => Constants[x.First.Name] = x.Second);
+        var res = Calc(lambda.Body);
+        Constants = old;
+        return res;
+      });
     }
     object CalcPipe(Binary binary)
     {
