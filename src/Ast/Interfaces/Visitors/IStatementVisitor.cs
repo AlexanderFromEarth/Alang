@@ -7,8 +7,8 @@ namespace Lang.Ast
     void Visit(IStatement expression, Type type) => GetType().GetMethod("Visit" + type.Name).Invoke(this, new[] { expression });
   }
 
-  public interface IStatementVisitor<T> where T : class
+  public interface IStatementVisitor<T>
   {
-    T Visit(IStatement expression, Type type) => GetType().GetMethod("Visit" + type.Name).Invoke(this, new[] { expression }) as T;
+    T Visit(IStatement expression, Type type) => (T)GetType().GetMethod("Visit" + type.Name).Invoke(this, new[] { expression });
   }
 }
