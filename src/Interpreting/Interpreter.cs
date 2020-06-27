@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -17,19 +18,12 @@ namespace Lang.Interpreting
   {
     SourceFile SourceFile { get; set; }
     public IDictionary<string, object> Constants { get; set; }
-    public Interpreter()
-    {
-      Assembly.GetExecutingAssembly()
-                  .GetTypes()
-                  .Where(t => t.IsClass && t.Namespace == "Lang.Interpreting.Values" && t.DeclaringType == null)
-                  .ToList().ForEach(Console.WriteLine);
-      Constants = new Dictionary<string, object>(Assembly.GetExecutingAssembly()
-            .GetTypes()
-            .Where(t => t.IsClass && t.Namespace == "Lang.Interpreting.Values" && t.DeclaringType == null)
-            .Select(Activator.CreateInstance)
-            .Select(x => KeyValuePair.Create((string)x.GetType().GetMethod("GetPrintString").Invoke(x, null), x))
-            .Concat(new KeyValuePair<string, object>[] { KeyValuePair.Create("true", (object)true), KeyValuePair.Create("false", (object)false), KeyValuePair.Create("null", (object)null) }));
-    }
+    public Interpreter() => Constants = new Dictionary<string, object>(Assembly.GetExecutingAssembly()
+      .GetTypes()
+      .Where(t => t.IsClass && t.Namespace == "Lang.Interpreting.Values" && t.DeclaringType == null)
+      .Select(Activator.CreateInstance)
+      .Select(x => KeyValuePair.Create((string)x.GetType().GetMethod("GetPrintString").Invoke(x, null), x))
+      .Concat(new KeyValuePair<string, object>[] { KeyValuePair.Create("true", (object)true), KeyValuePair.Create("false", (object)false), KeyValuePair.Create("null", (object)null) }));
     Exception MakeError(IExpression expr, string msg) => new Exception(SourceFile.MakeErrorMessage(expr.Position, msg));
     public void RunProgram(ProgramNode program)
     {
@@ -68,7 +62,22 @@ namespace Lang.Interpreting
       }
       Constants[name] = Calc(declaration.Expression);
     }
-    object Calc(IExpression expr) => expr.AcceptVisitor(this);
+    object Calc(IExpression expr, Dictionary<string, object> closure = null)
+    {
+      var old = Constants;
+      if (closure != null)
+      {
+        Constants = new Dictionary<string, object>(Constants);
+        foreach (var variable in closure)
+        {
+          Constants[variable.Key] = variable.Value;
+        }
+      }
+
+      var res = expr.AcceptVisitor(this);
+      Constants = old;
+      return res;
+    }
     T Calc<T>(IExpression expr)
     {
       var value = Calc(expr);
@@ -114,15 +123,13 @@ namespace Lang.Interpreting
     }
     public object VisitLambda(Lambda lambda)
     {
+      var closure = new Dictionary<string, object>(Constants);
       return new Function(x =>
       {
-        var old = Constants;
-        Constants = new Dictionary<string, object>(Constants);
-        lambda.Arguments.Zip(x).ToList().ForEach(x => Constants[x.First.Name] = x.Second);
-        var res = Calc(lambda.Body);
-        Constants = old;
-        return res;
-      });
+        var dict = new Dictionary<string, object>(closure);
+        lambda.Arguments.Zip(x).ToList().ForEach(x => dict[x.First.Name] = x.Second);
+        return Calc(lambda.Body, dict);
+      }, new Dictionary<string, object>(Constants));
     }
     object CalcPipe(Binary binary)
     {
@@ -136,7 +143,7 @@ namespace Lang.Interpreting
       {
         throw MakeError(call, $"{value} is not callable");
       }
-      var args = left.Yield().Concat(call.Arguments.Select(Calc)).ToList();
+      var args = left.Yield().Concat(call.Arguments.Select(x => Calc(x))).ToList();
       return func.Call(args);
     }
     object CalcAddition(Binary binary)
@@ -234,7 +241,8 @@ namespace Lang.Interpreting
       {
         throw MakeError(call, $"{value} is not callable");
       }
-      var args = call.Arguments.Select(Calc).ToList();
+
+      var args = call.Arguments.Select(x => Calc(x, func.Closure)).ToList();
       return func.Call(args);
     }
     public object VisitParentheses(Parentheses parentheses) => Calc(parentheses.Expression);
