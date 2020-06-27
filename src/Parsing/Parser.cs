@@ -79,14 +79,27 @@ namespace Lang.Parsing
           throw MakeError("Declaration not in variable");
         }
         var rightExpr = ParseExpression();
-        SkipIf(";");
-        return new Declaration(id.Name, rightExpr);
+        if (SkipIf(";") || CurrentToken.Type == TokenType.NewLine || CurrentToken.Type == TokenType.EnfOfFile)
+        {
+          while (CurrentToken.Type == TokenType.NewLine)
+          {
+            ReadNext();
+          }
+          return new Declaration(id.Name, rightExpr);
+        }
       }
       else
       {
-        SkipIf(";");
-        return new ExpressionStatement(leftExpr);
+        if (SkipIf(";") || CurrentToken.Type == TokenType.NewLine || CurrentToken.Type == TokenType.EnfOfFile)
+        {
+          while (CurrentToken.Type == TokenType.NewLine)
+          {
+            ReadNext();
+          }
+          return new ExpressionStatement(leftExpr);
+        }
       }
+      throw MakeError("Unknown statement");
     }
 
     IExpression ParseExpression()

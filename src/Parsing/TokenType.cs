@@ -4,6 +4,7 @@ namespace Lang.Parsing
   {
     Whitespaces,
     SingleLineComment,
+    NewLine,
     Identifier,
     NumberLiteral,
     OperatorOrPunctuator,

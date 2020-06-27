@@ -7,7 +7,8 @@ namespace Lang.Parsing
   class Regexes
   {
     static readonly IReadOnlyList<(TokenType, string)> patterns = new List<(TokenType, string)> {
-      ( TokenType.Whitespaces, @"[\s\t]+" ),
+      ( TokenType.Whitespaces, @"[ \t]+" ),
+      ( TokenType.NewLine, @"[\r\n]+"),
       ( TokenType.Identifier, @"[a-zA-Z_][a-zA-Z0-9_]*"),
       ( TokenType.SingleLineComment, @"\#[^\r\n]*" ),
       ( TokenType.NumberLiteral, @"[0-9]+"),
