@@ -5,7 +5,7 @@ using Lang.Ast;
 using Lang.Ast.BaseNodes;
 using Lang.Ast.Expressions;
 using Lang.Ast.Statements;
-using Lang.Utils;
+using static Lang.Utils.EnumExt;
 
 namespace Lang.Parsing
 {
@@ -17,17 +17,12 @@ namespace Lang.Parsing
     Token CurrentToken => Tokens[LastIndex];
     int CurrentPosition => CurrentToken.Position;
     Parser(SourceFile src, IReadOnlyList<Token> tokens) => (SourceFile, Tokens) = (src, tokens);
-    static bool IsNotWhitespace(Token token)
+    static bool IsNotWhitespace(Token token) => token.Type switch
     {
-      switch (token.Type)
-      {
-        case TokenType.Whitespaces:
-        case TokenType.SingleLineComment:
-          return false;
-        default:
-          return true;
-      }
-    }
+      TokenType.Whitespaces => false,
+      TokenType.SingleLineComment => false,
+      _ => true
+    };
     Exception MakeError(string msg) => new Exception(SourceFile.MakeErrorMessage(CurrentPosition, msg));
     void ReadNext() => LastIndex += 1;
     void Reset() => LastIndex = 0;
@@ -54,7 +49,7 @@ namespace Lang.Parsing
         throw MakeError($"Left {CurrentToken}");
       }
     }
-    public static ProgramNode Parse(SourceFile src) => new Parser(src, Lexer.GetTokens(src).Concat(new Token(src.Text.Length, TokenType.EnfOfFile, "").Yield()).Where(IsNotWhitespace).ToList()).ParseProgram();
+    public static ProgramNode Parse(SourceFile src) => new Parser(src, Lexer.GetTokens(src).Concat(Yield(new Token(src.Text.Length, TokenType.EnfOfFile, ""))).Where(IsNotWhitespace).ToList()).ParseProgram();
 
     ProgramNode ParseProgram()
     {

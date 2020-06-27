@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -10,7 +9,7 @@ using Lang.Ast.Expressions;
 using Lang.Ast.Statements;
 using Lang.Interpreting.Types;
 using Lang.Parsing;
-using Lang.Utils;
+using static Lang.Utils.EnumExt;
 
 namespace Lang.Interpreting
 {
@@ -30,27 +29,13 @@ namespace Lang.Interpreting
       SourceFile = program.SourceFile;
       try
       {
-        foreach (var statement in program.Statements)
-        {
-          Run(statement);
-        }
+        program.Statements.ForEach(Run);
       }
       finally
       {
         SourceFile = null;
       }
     }
-    void RunBlock(Block block)
-    {
-      var old = Constants;
-      Constants = new Dictionary<string, object>();
-      foreach (var statement in block.Statements)
-      {
-        Run(statement);
-      }
-      Constants = old;
-    }
-
     void Run(IStatement statement) => statement.AcceptVisitor(this);
     public void VisitExpressionStatement(ExpressionStatement expressionStatement) => Calc(expressionStatement.Expression);
     public void VisitDeclaration(Declaration declaration)
@@ -68,12 +53,8 @@ namespace Lang.Interpreting
       if (closure != null)
       {
         Constants = new Dictionary<string, object>(Constants);
-        foreach (var variable in closure)
-        {
-          Constants[variable.Key] = variable.Value;
-        }
+        closure.ForEach(v => Constants[v.Key] = v.Value);
       }
-
       var res = expr.AcceptVisitor(this);
       Constants = old;
       return res;
@@ -127,7 +108,7 @@ namespace Lang.Interpreting
       return new Function(x =>
       {
         var dict = new Dictionary<string, object>(closure);
-        lambda.Arguments.Zip(x).ToList().ForEach(x => dict[x.First.Name] = x.Second);
+        lambda.Arguments.Zip(x).ForEach(x => dict[x.First.Name] = x.Second);
         return Calc(lambda.Body, dict);
       }, new Dictionary<string, object>(Constants));
     }
@@ -143,7 +124,7 @@ namespace Lang.Interpreting
       {
         throw MakeError(call, $"{value} is not callable");
       }
-      var args = left.Yield().Concat(call.Arguments.Select(x => Calc(x))).ToList();
+      var args = Yield(left).Concat(call.Arguments.Select(x => Calc(x))).ToList();
       return func.Call(args);
     }
     object CalcAddition(Binary binary)
